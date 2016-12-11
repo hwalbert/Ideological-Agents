@@ -18,6 +18,8 @@ turtles-own [
   notMyCandidate
 
 ]
+Candidates-own [VotersICareAbout]
+
 Voters-own [
   P ; "the subjective probability that one's vote will bring about a difference in policy outcomes" - Stevens P.182
   B ; "net utility gain from a difference in policy outcomes (this will be the absolute value of the distance between Voter and Candidate
@@ -34,16 +36,33 @@ Voters-own [
   voting?
   ]
 
-to setup
-  setupGraph
-  setupCandidates
+to go
+  if ticks = 20 [stop]
+  pollVoters
+  updateVoterVariables
+  tick
+
 end
 
-to go
+to setup
+  setupGraph
+  setupVotersAndCandidates
+  setVoterVariables
+end
+
+to setVoterVariables
   CalcB
   CalcF
   CalcP
   CalcC
+  CalcD
+  DecideToVote
+end
+
+to updateVoterVariables
+  CalcB
+  CalcF
+  CalcP
   DecideToVote
 end
 
@@ -79,7 +98,7 @@ to CalcF
     set Influencers other Voters with [link-neighbor? myself]
     set InfluencersPro other Influencers with [myCandidate = [myCandidate] of myself]
 
-    ifelse any? Influencers and any? InfluencersPro [
+    ifelse any? Influencers and any? InfluencersPro and mean [B] of Influencers != 0 [
 
       set F (((count InfluencersPro) * mean [B] of InfluencersPro) / ((count Influencers) * mean [B] of Influencers))
       ;set F mean [B] of Influencers
@@ -100,9 +119,22 @@ to CalcC
   if VotingCost = "SetCost" [ask Voters [set C random-normal Cost .01]]
 end
 
+to CalcD
+  ifelse Corruption? = TRUE [
+    ask Voters [
+      set D abs(random-exponential 1)
+      if D < 1 [set D 1]
+      ]
+    ][
+    ask Voters [
+      set D 1
+      ]
+    ]
+end
+
 to DecideToVote
   ask voters [
-    set PBD (P * B)
+    set PBD (P * B * D)
     ifelse PBD > C [set voting? TRUE][set voting? FALSE]
     ]
 end
@@ -111,11 +143,11 @@ end
 
 
 
-
+;this is the first thing we do:
 to setupGraph
   ca
   reset-ticks
-
+;the model starts with the import of a network generated according to a random, scale free or small world distribution
   if NetworkType = "RandomNetwork" [nw:load-graphml "C:/Users/Harold/Documents/CSS/Computational Econ CSS695/Random_GraphForNetLogoModel.graphml" [
     ask links [hide-link]
     ]]
@@ -125,10 +157,20 @@ to setupGraph
   if NetworkType = "SmallWorldNetwork" [nw:load-graphml "C:/Users/Harold/Documents/CSS/Computational Econ CSS695/SmallWorld_GraphForNetLogoModel.graphml" [
     ask links [hide-link]
     ]]
+end
 
+;then setup voters and candidates
+to setupVotersAndCandidates
+  reset-ticks
+  setupVoters
+  setupCandidates
+end
 
+;this sets up the voters with a distribution based on the empirically observed voter ideal points
+to setupVoters
   ask turtles[
-    setxyz EF PF DT
+    ;set their xyz coordinates to a random normal with the mean at the empirical ideal point
+    setxyz (random-normal EF 1) (random-normal PF 1) (random-normal DT 1)
     set color green
     set breed Voters
     ]
@@ -145,21 +187,46 @@ to setupCandidates
 
   set CandidateR turtle max [who] of candidates
   set CandidateL turtle min [who] of candidates
+
+
+  ifelse RandomInitialCandidatePositions? = TRUE [
+    ask Candidates[
+    setxyz random 9 random 9 random 9
+    if random 2 = 0 [set xcor (xcor * -1)]
+    if random 2 = 0 [set ycor (ycor * -1)]
+    if random 2 = 0 [set zcor (zcor * -1)]
+    set shape "circle"
+    set color White
+    set size 1
+    set pen-mode "down"
+    ]
+    ][
   ask CandidateR [set EF EF_CandidateR]
   ask CandidateR [set PF PF_CandidateR]
   ask CandidateR [set DT DT_CandidateR]
   ask CandidateL [set EF EF_CandidateL]
   ask CandidateL [set PF PF_CandidateL]
   ask CandidateL [set DT DT_CandidateL]
-
-  ask candidates [
+  ask Candidates [
     setxyz EF PF DT
     set shape "circle"
     set color White
     set size 1
+    set pen-mode "down"
+    ]
   ]
 
+
+;  ask candidates [
+;    setxyz EF PF DT
+;    set shape "circle"
+;    set color White
+;    set size 1
+;    set pen-mode "down"
+;  ]
+
 end
+
 
 
 
@@ -173,8 +240,26 @@ end
 
 
 
+to pollVoters
+  ask Candidates [
+    set shape "arrow"
+    let myPollVoters n-of 30 Voters
+    let myVoters myPollVoters with [myCandidate = myself]
+    let notMyVoters myPollVoters with [myCandidate != myself]
+    ;this throws out some of the people in the poll that don't support the current candidate
+    let discountNotMyVoters n-of (discount * count NotMyVoters) notMyVoters
+    ;this set an agentset of voters that I will consider and try to move towards
+    set VotersICareAbout (turtle-set discountNotMyVoters myVoters)
 
 
+    ;this makes the candidate face the direction of the voters they care about
+    facexyz mean [EF] of VotersICareAbout mean [PF] of VotersICareAbout mean [DT] of VotersICareAbout
+    ;this moves the candidate in the direction of the voters they care about
+    forward 1
+
+    ;set pitch
+    ]
+end
 
 
 
@@ -214,27 +299,12 @@ ticks
 30.0
 
 SLIDER
-183
-11
-355
-44
+186
+51
+358
+84
 EF_CandidateR
 EF_CandidateR
--5
-5
-0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-184
-48
-356
-81
-PF_CandidateR
-PF_CandidateR
 -5
 5
 3
@@ -244,10 +314,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-184
-84
-356
-117
+187
+88
+359
+121
+PF_CandidateR
+PF_CandidateR
+-5
+5
+-3
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+187
+124
+359
+157
 DT_CandidateR
 DT_CandidateR
 -5
@@ -259,27 +344,12 @@ NIL
 HORIZONTAL
 
 SLIDER
-9
-11
-181
-44
+12
+51
+184
+84
 EF_CandidateL
 EF_CandidateL
--5
-5
-2
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-9
-47
-181
-80
-PF_CandidateL
-PF_CandidateL
 -5
 5
 -3
@@ -289,15 +359,30 @@ NIL
 HORIZONTAL
 
 SLIDER
-9
-84
-181
-117
+12
+87
+184
+120
+PF_CandidateL
+PF_CandidateL
+-5
+5
+3
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+12
+124
+184
+157
 DT_CandidateL
 DT_CandidateL
 -5
 5
--5
+0
 1
 1
 NIL
@@ -331,23 +416,6 @@ NIL
 1
 
 BUTTON
-758
-325
-854
-358
-setupGraph
-setupGraph
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
 436
 69
 498
@@ -364,45 +432,11 @@ NIL
 NIL
 1
 
-BUTTON
-757
-360
-882
-393
-setupCandidates
-setupCandidates
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-218
-127
-281
-160
-2. go
-go
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 MONITOR
-31
-278
-119
-323
+14
+284
+102
+329
 Would Vote R
 count voters with [myCandidate = CandidateR]
 17
@@ -410,10 +444,10 @@ count voters with [myCandidate = CandidateR]
 11
 
 MONITOR
-123
-278
-209
-323
+106
+284
+192
+329
 Would Vote L
 count voters with [myCandidate = CandidateL]
 17
@@ -421,11 +455,11 @@ count voters with [myCandidate = CandidateL]
 11
 
 BUTTON
-10
-127
-218
-160
-1. Setup Voters and Candidates
+13
+167
+249
+200
+1. Setup Graph, Voters & Candidates
 setup
 NIL
 1
@@ -439,14 +473,14 @@ NIL
 
 SLIDER
 14
-236
+249
 186
-269
+282
 Cost
 Cost
 0
 .02
-0.005
+0.0166
 .0001
 1
 NIL
@@ -454,19 +488,19 @@ HORIZONTAL
 
 CHOOSER
 14
-192
+205
 152
-237
+250
 VotingCost
 VotingCost
 "NoCost" "SetCost"
 1
 
 MONITOR
-50
-328
-109
-373
+14
+330
+73
+375
 Voting R
 count voters with [color = red and voting? = TRUE]
 17
@@ -474,9 +508,9 @@ count voters with [color = red and voting? = TRUE]
 11
 
 MONITOR
-133
+75
 330
-190
+132
 375
 Voting L
 count voters with [color = blue and voting? = TRUE]
@@ -485,10 +519,10 @@ count voters with [color = blue and voting? = TRUE]
 11
 
 MONITOR
-61
-384
-181
-429
+14
+377
+134
+422
 Voting Participation %
 ((count Voters with [voting? = TRUE]) / count Voters) * 100
 1
@@ -496,10 +530,10 @@ Voting Participation %
 11
 
 BUTTON
-238
-330
-359
-363
+377
+197
+496
+230
 Hide Non-Voters
 ask Voters with [voting? = FALSE] [set size .0001]
 NIL
@@ -511,6 +545,104 @@ NIL
 NIL
 NIL
 1
+
+SWITCH
+376
+118
+496
+151
+Corruption?
+Corruption?
+0
+1
+-1000
+
+BUTTON
+376
+151
+496
+184
+Show Corruption
+ask Voters [set size D / 10]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+377
+230
+496
+263
+Show all Agents
+ask Voters [set size .25]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+284
+334
+456
+367
+discount
+discount
+0
+1
+0.5
+.1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+249
+167
+312
+200
+go
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+TEXTBOX
+285
+276
+505
+333
+This is the percent determines the number of voters in the candidates poll that don't support them that are ignored when determining where to head in ideology space.
+11
+0.0
+1
+
+SWITCH
+86
+21
+327
+54
+RandomInitialCandidatePositions?
+RandomInitialCandidatePositions?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
