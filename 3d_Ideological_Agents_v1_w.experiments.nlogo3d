@@ -7,7 +7,8 @@ breed [Voters Voter]
 globals [
   CandidateR
   CandidateL
-
+  Flip?
+  Winner
   ]
 turtles-own [
   EF ; Economic Freedom: x-axis
@@ -30,14 +31,20 @@ Voters-own [
   Influencers
   InfluencersPro
   Fervency
-  myCandSupport
-  myCandNoSupport
+  ;myCandSupport
+  ;myCandNoSupport
   PBD
   voting?
   ]
 
 to go
-  if ticks = 20 [stop]
+  ifelse count voters with [color = red and voting? = TRUE] > count voters with [color = blue and voting? = TRUE] [set Winner "CandidateR"] [set Winner "CandidateL"]
+  set Flip? count voters with [myCandidate = CandidateR] < count voters with [myCandidate = CandidateL] and count voters with [color = red and voting? = TRUE] < count voters with [color = blue and voting? = TRUE]
+  ;ifelse count voters with [color = red] < count voters with [color = blue] AND
+  if ticks = 20 [
+    stop
+    ]
+
   pollVoters
   updateVoterVariables
   tick
@@ -48,6 +55,7 @@ to setup
   setupGraph
   setupVotersAndCandidates
   setVoterVariables
+  set Flip? "NA"
 end
 
 to setVoterVariables
@@ -116,7 +124,11 @@ end
 
 to CalcC
   if VotingCost = "NoCost" [ask Voters [set C 0]]
-  if VotingCost = "SetCost" [ask Voters [set C random-normal Cost .01]]
+  if VotingCost = "SetCost" [ask Voters [
+      set C random-normal Cost .01
+      if C < 0 [set C 0]
+      ]
+  ]
 end
 
 to CalcD
@@ -241,29 +253,36 @@ end
 
 
 to pollVoters
-  ask Candidates [
+  ask CandidateR [
     set shape "arrow"
     let myPollVoters n-of 30 Voters
     let myVoters myPollVoters with [myCandidate = myself]
     let notMyVoters myPollVoters with [myCandidate != myself]
     ;this throws out some of the people in the poll that don't support the current candidate
-    let discountNotMyVoters n-of (discount * count NotMyVoters) notMyVoters
+    let discountNotMyVoters n-of (discountR * count NotMyVoters) notMyVoters
     ;this set an agentset of voters that I will consider and try to move towards
     set VotersICareAbout (turtle-set discountNotMyVoters myVoters)
-
-
     ;this makes the candidate face the direction of the voters they care about
     facexyz mean [EF] of VotersICareAbout mean [PF] of VotersICareAbout mean [DT] of VotersICareAbout
     ;this moves the candidate in the direction of the voters they care about
     forward 1
+    ]
 
-    ;set pitch
+    ask CandidateL [
+    set shape "arrow"
+    let myPollVoters n-of 30 Voters
+    let myVoters myPollVoters with [myCandidate = myself]
+    let notMyVoters myPollVoters with [myCandidate != myself]
+    ;this throws out some of the people in the poll that don't support the current candidate
+    let discountNotMyVoters n-of (discountL * count NotMyVoters) notMyVoters
+    ;this set an agentset of voters that I will consider and try to move towards
+    set VotersICareAbout (turtle-set discountNotMyVoters myVoters)
+    ;this makes the candidate face the direction of the voters they care about
+    facexyz mean [EF] of VotersICareAbout mean [PF] of VotersICareAbout mean [DT] of VotersICareAbout
+    ;this moves the candidate in the direction of the voters they care about
+    forward 1
     ]
 end
-
-
-
-
 
 
 
@@ -396,7 +415,7 @@ CHOOSER
 NetworkType
 NetworkType
 "RandomNetwork" "SmallWorldNetwork" "ScaleFreeNetwork"
-1
+2
 
 BUTTON
 374
@@ -480,7 +499,7 @@ Cost
 Cost
 0
 .02
-0.0166
+0.002
 .0001
 1
 NIL
@@ -521,9 +540,9 @@ count voters with [color = blue and voting? = TRUE]
 MONITOR
 14
 377
-134
+100
 422
-Voting Participation %
+% Voting
 ((count Voters with [voting? = TRUE]) / count Voters) * 100
 1
 1
@@ -596,8 +615,8 @@ SLIDER
 334
 456
 367
-discount
-discount
+discountR
+discountR
 0
 1
 0.5
@@ -643,6 +662,43 @@ RandomInitialCandidatePositions?
 0
 1
 -1000
+
+SLIDER
+284
+370
+456
+403
+discountL
+discountL
+0
+1
+0.5
+.1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+135
+330
+192
+375
+Flip?
+Flip?
+17
+1
+11
+
+MONITOR
+103
+379
+192
+424
+Winner
+Winner
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -991,6 +1047,73 @@ NetLogo 3D 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="Candidate Strategy Experiments" repetitions="100" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+    <metric>((count Voters with [voting? = TRUE]) / count Voters) * 100</metric>
+    <metric>Winner</metric>
+    <metric>Flip?</metric>
+    <enumeratedValueSet variable="NetworkType">
+      <value value="&quot;ScaleFreeNetwork&quot;"/>
+      <value value="&quot;RandomNetwork&quot;"/>
+      <value value="&quot;SmallWorldNetwork&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RandomInitialCandidatePositions?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Corruption?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="discountL">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="discountR">
+      <value value="0.8"/>
+      <value value="0.02"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="VotingCost">
+      <value value="&quot;SetCost&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cost">
+      <value value="0.002"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Voting Cost Experiment" repetitions="100" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>count turtles</metric>
+    <metric>((count Voters with [voting? = TRUE]) / count Voters) * 100</metric>
+    <metric>Winner</metric>
+    <metric>Flip?</metric>
+    <enumeratedValueSet variable="VotingCost">
+      <value value="&quot;NoCost&quot;"/>
+      <value value="&quot;SetCost&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="discountL">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Corruption?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RandomInitialCandidatePositions?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="discountR">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="NetworkType">
+      <value value="&quot;ScaleFreeNetwork&quot;"/>
+      <value value="&quot;RandomNetwork&quot;"/>
+      <value value="&quot;SmallWorldNetwork&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Cost">
+      <value value="0.002"/>
+      <value value="0.015"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

@@ -57,6 +57,17 @@ for (i in 1:20) {
 #Put all the data in one place:
 FinalData <- bind_cols(CCDclusters, data.frame(PC_CCD$rotation[,1:3]))
 
+#New Stuff
+FinalData$EF <- scales::rescale(x=FinalData$PC1, c(-8, 8))
+FinalData$PF <- scales::rescale(x=FinalData$PC2, c(-8, 8))
+FinalData$DT <- scales::rescale(x=FinalData$PC3, c(-8, 8))
+
+#colnames(FinalData, c("V33", "V34"), c("clust2","clust3"))
+
+print(paste("The Standard deviation of scaled PC1 (EF) is", sd(FinalData$EF)))
+print(paste("The Standard deviation of scaled PC2 (PF) is", sd(FinalData$PF)))
+print(paste("The Standard deviation of scaled PC3 (DT) is", sd(FinalData$DT)))
+
 #Analysis & Visualization####
 #View some plots
 #We see that the first three PCs account for ~80% of the variance
@@ -119,6 +130,22 @@ plot(PC_CCD$rotation[,1:3], col = as.factor(as.integer(CCD$Country)))
 #Interactive 3D
 plot3d(PC_CCD$rotation[,1:3], col = as.factor(as.integer(CCD$Country)))
 scatterplot3d(FinalData[,52:54], color = as.integer(FinalData$Country), pch = 20)
+
+#Show specific countries ideological distributions:
+PlotCountryIdeology <- function(CountryToFilter = "United States"){
+  CountryFinalData <- filter(FinalData, Country == CountryToFilter)
+  scatterplot3d(CountryFinalData[,52:54], highlight.3d = TRUE,
+                main = paste("3D Ideological Distribution:", CountryToFilter), cex.lab=0.75)
+  
+  #scatterplot3d(CountryFinalData[,52:54], color = CountryFinalData$V35, pch = 20)
+  plot3d(CountryFinalData[,52:54])
+  
+  CountryFinalData <- data.frame(CountryFinalData$year, CountryFinalData$Country, CountryFinalData[,33:37], CountryFinalData[,52:54])
+  
+  CountryFinalData <<- CountryFinalData
+}
+
+
 #Understanding and creating empirically based distributions####
 #What about the first 3 principal components? Are they distributed normally?
 #Lets check using the shapiro test for normality 
@@ -151,11 +178,12 @@ ks.test(PC_CCD$x[,1], "pweibull", scale=.0300335846, shape=3.5980409221)
 # NLLoadModel('C:/Users/Harold/Documents/CSS/Computational Econ CSS695/3d_Ideological_Agents.nlogo3d')
 
 
+
 #So lets just sample from the empirical data
 #This function gets us a number of observations:
 getVoterPopulation <- function(numAgents){
   VoterPopulation <- sample_n(FinalData, numAgents, replace = TRUE)
-  scatterplot3d(VoterPopulation[,52:54], highlight.3d = TRUE)
+  #scatterplot3d(VoterPopulation[,52:54], highlight.3d = TRUE)
   
   #Need to rescale for netlogo
   VoterPopulation$EF <- scales::rescale(x=VoterPopulation$PC1, c(-8, 8))
@@ -199,3 +227,46 @@ write.graph(g, paste(graphType,"GraphForNetLogoModel.graphml", sep = "_"), forma
 # 
 # 
 # 
+# 
+# par(mfrow=c(2,2))
+# PlotCountryIdeology("Australia")
+# PlotCountryIdeology("Austria")
+# PlotCountryIdeology("Belgium")
+# PlotCountryIdeology("Canada")
+# PlotCountryIdeology("Denmark")
+# PlotCountryIdeology("Finland")
+# PlotCountryIdeology("France")
+# PlotCountryIdeology("West Germany")
+# PlotCountryIdeology("Ireland")
+# PlotCountryIdeology("Italy")
+# PlotCountryIdeology("Japan")
+# PlotCountryIdeology("Netherlands")
+# PlotCountryIdeology("New Zealand")
+# PlotCountryIdeology("Norway")
+# PlotCountryIdeology("Sweden")
+# PlotCountryIdeology("Switzerland")
+# PlotCountryIdeology("United Kingdom")
+# PlotCountryIdeology("United States")
+# PlotCountryIdeology("Greece")
+# PlotCountryIdeology("Portugal")
+# PlotCountryIdeology("Spain")
+# 
+# 
+# 
+# 
+# #Now Analyze the experiment results####
+# test <- read.csv("C:/Users/Harold/Documents/CSS/Computational Econ CSS695/Experiments/3d_Ideological_Agents_v1 ScaleFree_-table.csv", skip = 6)
+# test <- test[,2:ncol(test)]
+# names(test) <- c("NetworkType","RandomInitialCandidatePositions","Corruption","discountL","discoutR",
+#                  "VotingCost", "Cost", "tick", "NumTurtles", "WinPercent","Winner","Flip")
+# test <- filter(test, tick == 20)
+# test$Winner <- as.character(test$Winner)
+# test$Winner <- gsub("[[:punct:]]", "", as.list(test$Winner))
+# test <- mutate(test, UniqueConcat = paste(NetworkType, RandomInitialCandidatePositions, Corruption, discountL,
+#                                           discoutR, VotingCost, Cost, NumTurtles, sep = "-"))
+# 
+# results <- summarise(group_by(test, UniqueConcat), winPercent = ((sum(test$Winner == "CandidateL") / sum(test$Winner == "CandidateR"))*100))
+# 
+
+
+
