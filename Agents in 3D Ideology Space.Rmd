@@ -1,0 +1,195 @@
+---
+title: "Candidate & Voter Agents in 3D Political Spectrum Space"
+author: "Harold Walbert, Chris Nguyen, Namloc Nguyen, Jessie Park"
+date: "December 8, 2016"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+load(file = "PoliticalSpectrumClustering.RData")
+library(igraph);library(RNetLogo);library(skewt);library(dplyr);library(xlsx);library(ggplot2)
+library(ggfortify);library(cluster);library(fpc);library(rgl);
+library(RColorBrewer);library(scales);library(psych);library(car)
+library(fitdistrplus);library(scatterplot3d)
+```
+
+##__Abstract__
+In this paper we seek to model an electoral process where voters choose candidates based on the voter's self-interest. We construct an agent-based model using three dimensions of empirical distributions of ideology. Over the course of a campaign, voters update their preference for a candidate based on their unique position in their social network and their unique position in 3D political ideology space. Voters can influence other voters perceptions of the likelihood that their preferred candidate will win.  In addition candidates are able to respond to the the "polls" they take of voters and are able to make known updated policy positions in an effort to find more voters. 
+
+##__Introduction__
+
+In an electoral process, voters choose candidates based on the voter's self-interest and candidates want to receive votes from voters. We construct an agent-based model under the assumption that electoral preferences of induvial voters change over the course of a campaign due to social interactions and the influence of local and global information. In these networks, voters can influence other voters (and vice-versa) in how they ultimately vote. 
+
+
+The main objectives of this paper are to further the conversation about party competition from both the voter and candidate perspectives as well as understand distributions of voter preferences that may follow different distributions and may be clustered over a wide variety of political dimensions.  Additionally this paper will allow for the political spectrum to be more complex than the usual one or two-dimensional spectrums that are common in the literature.  Agents follow a variation of the median voter theorem. While there are amy examples and discussions of the median voter theorem little has been done to apply the Hotelling model to different dimensions.  The current research has targeted two-dimensional applications of the Hotelling model to determine optimal locations and prices, and analyzing the effects of this two-dimensional competitive model. (Larralde, Jensen, & Edwards, 2006; Veendorp & Majeed, 1995)  Brierly (2008) married the Hotelling model and the Salop model and took it to the nth dimension to formulate a generalization that can be applied location theories and the median voter theorem.  By using empirical data and agent-based modelling, we identify three axis on the political spectrum which will give voters the environment to chose their preferred candidate and that will give candidates the space in which to operate in order to try to capture the votes of the median voter.  
+
+This paper will proceed as follows:
+
+1. A literature review of the literature as it progresses through the economic foundations necessary for our experiment, a relevant literature review of research on the politial spectrum, political ideology, measurent, and visualization (ex. Nolan chart). The logic of the basic mathematical model behind downs paradox will be covered as well. 
+
+2. An examination of the Data, Methods & Analysis that make up this paper. This will include cleaning and analysis of the empirical data,  model specification, etc.
+
+3. Results and Findings
+
+4. Discussion
+
+##Literature Review
+Harold Hotelling (1929) in "Stability in Competition" hints at, what Duncan Black later formalized as, the median voter theorem which states that to capture the majority, the outcome must be preferred by the median voter.  Hotelling first makes the argument using the location of businesses on a straight path - both of whom will alter not only their prices but their location along the path to attract more customers.  The businesses will lower their prices and begin to converge on the one-dimensional plane in an effort to seem more appealing to customers. (Hotelling, 1929)  The classic example of two ice cream vendors on a beach boardwalk lends a hand in explaining the behaviour that Hotelling noticed.  [Insert ice cream story here]  While the application was to analyze behaviour of the firm in capturing the market, Hotelling does recognize the shift in political stances between the Democratic Party and the Republican Party.
+
+Almost 20 years later, Black (1948) in "On the Rationale of Group Decision-making" refines and formalizes the behaviour Hotelling noted in political stances and majority voting into the median voter theorem.  Granted two constraints, the position of the median voter is a Nash equilibrium - at that point, nothing is gained by moving away from that position.  The two constraints are assumptions that preferences are single-peaked and assumptions that preferences are only considered over a single dimension. (Black, 1948)  For our experiment, we assume that the preferences of the voters are single-peaked in that they will gain the most utility by voting for their candidate.  Where this experiment strays is with the second constraint.  The median voter theorem is restricted to a single dimension since an equilibrium cannot be reached in situations considering multiple dimensions.  However, following in the footsteps of Brierly (2008), without marrying the Hotelling model to the Salop model, we pivot and turn our focal points to the Hotelling model and Downs paradox to conduct spatial analysis voter behaviour.     [Alright, something doesn't sit right with me here]
+
+Downs paradox, also referred to as the paradox of not voting, states that a rational, self-interested voter will not vote if the cost of voting is greater than the expected benefit of voting.  Since the probability that the voter gets into a car crash on the way to the voting poll is higher than the probability that the voter will cast the deciding vote, the voter will most likely not vote since the cost of voting will be greater than benefit. (Downs, 1957a; Downs, 1957b; Feddersen, 2004)  However, that is not the behaviour that is exhibited.  Voters will go through inclement weather, overcome the distance to the voting poll, wait in long lines, spend time pondering about who to vote - all of which are factors of cost in voting - to go vote.  "This finding suggests that voters participate because they hope to influence the ultimate outcome of the election." (Feddersen, 2004)  The in-depth analysis of the mathematical equation behind downs paradox will be covered in the next section.  [I might add more to downs paradox with the cost of information (?)]
+
+
+
+The Nolan chart was created by David Nolan, a political scientist of the Libertarian party. He realized that having a spectrum of just two extremes was just inadequate to describe anything. People are not completely defined as liberals or completely as conservatives in all political views. David Nolan instead reoriented the graph into a two-dimensional chart that measures personal freedoms on the vertical axis and economic freedoms on the horizontal axis. The chart is a visual representation of people's alignment on not just liberal versus conservative, but also statist versus libertarian ideologies. Libertarianism generally "supports the smallest possible government, supports individual liberty in all ways, prefers to only defend our borders and not interfere in other countries' affairs." Statist, on the other hand, hold a view that is close to "the marriage of liberal and conservative aspects of big government. Supports both the conservative 'family' agenda and the liberal 'social' agenda. Supports both major diplomatic and military involvement abroad." Conservative views "tends to give a nod and a wink to liberty while placing emphasis on government control of "family" issues (gay marriage, abortion, borders, etc.) while pushing for major military involvement worldwide by America, in the hopes of creating a faith-based, 'conservative' world." Liberals "ends to give a nod and a wink to liberty while placing emphasis on government control of 'social issues' (social safety net, minority rights, etc.) while pushing for major diplomatic involvement worldwide by America backed by somewhat lesser military involvement, in the hopes of creating an inclusive, 'liberal' world." Lastly, Nolan makes room for a "moderate" middle ground called Centrist, which is an area in the middle of his chart. (Q8 2016) All five parts when viewed together give a more robust answer to what people generally ascribe to in political opinion. Having low levels of social freedom while having low levels of economic freedom no longer count as the normal liberal or normal conservative; they are part of the statists. This holds true for high levels of both; the libertarian view would be ascribed to them.
+	
+Johnston and Feldman believe that there is an inability for a heterogeneous man to be categorized merely using a single unidimensional spectrum." The multidimensionality of preferences implies that self-placement along a single dimension is insufficient to account for the variety of ideological perspectives in the public." The two of them also show that there is a myriad of determinants that factors into a person's ideological grouping when there are multiple dimensions. "We have shown that modeling the predictors of ideology yields substantially different conclusions in a two-dimensional model than the one-dimensional model." (Feldman 2013) This is because certain variables only affect a single movement of travel, but others move across multiple dimensions. Castle and Mair noticed that "there are many parties whose primary goals cross-cut the Left-Right ideological dimension and whose names may reveal little concerning their ideological position." They come up with three strategies to identify location-scale: first is to read closely what is put out by the country's leading "experts" (media, academics.); second is adding "ad hoc decision rules," to the first, that specifies party location; lastly they say to use surveying techniques to poll people in order to gauge their political ideologies. (Castle 1984) This is not enough to explain ideology and at the same time it is too much. A poll can created and whichever way a person votes on each issue could be a spectrum in of itself, creating a possibly infinite-dimension. The problem is that, while this is very specific, it is not particularly useful in trying to generalize ideology. Instead of adding a multitude, one could possibly claim that there are only three dimensions that truly matter when trying to describe the typical rational voter. Using just three for a model limits what needs to be accounted for, while still maintaining a higher level of truth.
+
+Agent based modeling has been used by Laver and Sergenti to understand Political Agents...more to come.
+
+##__Method of Analysis__
+
+We begin by asking the question: "Can we model voting agents where these agents may take into account up to 3 dimensions of political ideology? Furthermore, can we give these agents an empirical basis for the distributions they take?" An agent-based model is ideal for looking at questions where the interactions of individual, unique decision makers effect the macro level emergent outcome. It allows simulations of interactions of autonomous individuals (the voters) in an environment, in order to determine the overall effect of the outcome. This paper does this by using data comparing political parties (Swank, 2013). Data includes Country and Year level detail with information on the whether it was an election year along with variables for political classifications (Castles & Mair, 1984). There are 28 variables giving vote/seat/cabinet portfolio percentages for the following political classifications:Left, Right, Christian Democratic, Centrist Christian Democratic, Center Party, Right Wing Populist, and Left Libertarian.  After incomplete observations are removed there are 1,226 observations left for the years 1950 - 2011 for 21 countries.
+
+Table of Countries and frequency of overservation
+```{r, echo=FALSE}
+#Table of Countries and frequency of overservation
+table(CCD$Country)
+```
+
+Table of Years observed and the frequency of the observation
+```{r, echo=FALSE}
+#Table of Years observed and the frequency of the observation
+table(CCD$year)
+```
+The data is transformed into a dissimilarity matrix using the method described by Gower (1971).  Since the dataset contains multiple classes of data we need to use a method that allows distance calculation across multiple classes. Once this matrix is calculated, a Principal Components Analysis (PCA) is used to reduce the dimensionality of the original transformed dataset.  The first three components of the PCA explain approximately 80% of the variance.  Adding two more components only gets us up to 90%.
+```{r, echo=FALSE}
+as.table(Summary_PC_CCD$importance[1:3,1:5])
+plot(PC_CCD, main = "Variances of Princical Components")
+```
+
+A K-means clustering algorithm (Hartigan, J. A. and Wong, M. A. (1979). A K-means clustering algorithm. Applied Statistics 28, 100-108.) is used on the dissimilarity matrix to calculate clusters.  Clusters are calculated for 2 through 20 clusters. 
+
+I take the rotations of the first three prinical components as the first three dimensions of political ideology that each person, country, agent has.  Understanding the distributions, what Laver & Sergenti call "voters ideal points" of political ideology could shed light on how voting and elections work. We want to take a look at these first three dimensions. But before we work on all three dimensions lets take a look at the first two. Different dimensions of political ideology are important for understanding how voters behave.  Here is a look at the distributions of all three dimensions along with their correlations.
+
+```{r, echo=FALSE}
+scatterplotMatrix(~PC_CCD$rotation[,1] + PC_CCD$rotation[,2] + PC_CCD$rotation[,3],
+                  upper.panel=panel.cor, pch = 20,
+                  var.labels=c("PC1_Rotation","PC2_Rotation", "PC3_Rotation")
+                  )
+title(sub = "Distribtuions & Correlations of Dimensions of Political Ideology")
+```
+
+The resulting empirical distributions can not be described as appearing to follow a normal distribution. Princical Component 2 appears to be distributed in a bi-modal way. Plotting these dimensions can show us how the different distributions are related.  Adding a third dimension to the visualizations can change the way we understand how ideology is distributed.  The following two visualizations show how the addition of a third dimension can shed more light on the spatial distribution.  Adding the third dimension can give a better understand about political ideology space.
+
+First we look at only two dimensions
+```{r, echo=FALSE}
+plot(PC_CCD$rotation[,1:2], pch = 20,
+main = "First two Empirical Ideology Dimensions",
+sub = "Rotations of Principal Components 1 & 2"
+)
+```
+
+
+The plot below shows all three dimensions in one graph. 
+```{r, echo=FALSE}
+scatterplot3d(PC_CCD$rotation[,1:3], pch = 20)
+
+```
+
+This is the same plot as above with each observations colored by Country.  Notice that countries can be seen to have distinct groups or clusters in separate parts of ideology space.  These differences can take place on one or more dimensions.
+```{r, echo=FALSE}
+scatterplot3d(FinalData[,52:54], color = as.integer(FinalData$Country), pch = 20)
+title(sub = paste("Colors show", length(unique(FinalData$Country)), "Countries"))
+```
+
+Below are plots of several individual countries locations on this spectrum
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+PlotCountryIdeology("United States")
+PlotCountryIdeology("United Kingdom")
+PlotCountryIdeology("Japan")
+PlotCountryIdeology("Canada")
+```
+
+Although political ideology is a continuous spectrum, political parties exists in a much more binary space.  They describe themselves as "left" vs. "right", "authoritatian" vs. "libertarian", "conservative" vs "liberal".  I use K-means clustering (Hartigan and Wong, 1979) to understand the different groups or communities (i.e. political parties) that the data suggests might exist. The graph below shows all three dimensions of political ideology and colors each observation according to the cluster to which it belongs.  Examples are shown for 2 & 3 clusters
+```{r, echo=FALSE}
+plotIdeologyClusters(centers = 2)
+plotIdeologyClusters(centers = 3)
+```
+
+##Description of the ABM
+
+The agent based model  They are also given their own unique social network.  Each we need to create an o
+
+The model starts with the import of a network generated according to a random, scale free or small world distribution.  The nodes in this network represent the voter agents that are instantiated with political ideology coordinates drawn according to the empirical data described in the previous section.
+
+Small World network of voter agents
+```{r, echo=FALSE}
+setupAgents(numAgents = 1000, graphType = "SmallWorld")
+```
+
+Scale Free network of voter agents
+```{r, echo=FALSE}
+setupAgents(numAgents = 1000, graphType = "ScaleFree")
+```
+
+There are two candidate agents that start out at random starting political ideology coordinates.
+
+There are five variables that each voter agent must calculate.  Three of the variables (P, B, and F) are calculated and updated as the simulation is run.  The other two variables (C and D) are set at the beginning of the simulation and stay the same for the duration of the simulation. The main equation that is used to determine if a voter votes or not is given by: $P*B+D>C$. The variable P is each voters subjective probability that their vote will make a difference in the outcome. B is the difference between the 3D distance between the agent that is not my candidate and the agent that is my candidate, D is the private benefits from the act of voting, and C is the cost of voting.
+
+P itself is mathematically defined as: $P = 3e^{(-2(N-1)(F-0.5)^2 )}/2 \sqrt{2\pi(N-1)}$ where F = avg (B) of links and represents the agents individual belief that their preferred candidate will win. N is the number of voters participating in an election. As N increases the law of large numbers tends to apply, and we will see P approach one half. The law of large numbers necessitates such an outcome should occur assuming an underlying Gaussian distribution.
+
+B is the benefit from a difference in policy positions between the candidates. B is calculated as the 3D distance from the candidate the voter does not support minus the 3D distance from the candidate that the voter does support. Said differently, it is the overall utility gain from the differences in ideological positioning of the candidates should the voters preferred candidate win.
+
+F is calculated using each voters individual network.  They have two types of voters in their network: voters that support the candidate they support and voters that do not. F is a fraction where the numerator is the number of voters in their network that support their candidate multipled by that voters B value (how much they would benefit if their candidate wins, i.e. the other voters "fervency").  The denominator is the number of voters in their network that do not support their candidate multiple by that voters B value.  If the voter doesn't have a network large or diverse enough to support this type of analysis, F is set to a random normal centered around 0.5.
+
+D is the benefits that are unique to each agent should their candidate win. It is the private benefit of the actual act of voting.  This could take the form of a subsidy, favorable legislation, pride in fulfilling civic duties, or outright corruption in the government and election system.  For the experiments we will assume a low level of corruption that is distributed according to a exponential exponential distribution.  This makes a world where most agents have a very low level of private benefits but some voters have large benefits should their candidate win. The minimum value D can take is 1 and this is the default if there is no corruption in the model. 
+
+Lastly, C is defined as the costs of voting. Costs could include anything from typical travel costs accrued in travelling to a voting booth to opportunity costs incurred due to loss of the chance to partake in all other substitute options. If cost is not set to be 0 then it is distributed according to a normal distribution and it is constrained to be >= 0.
+
+When the expected value of the private benefits a voter would should their candidate win plus any unique benefits is greater than the cost of voting (i.e. when $P*B+D>C$) the voter will choose to vote should the election occur at that time When the probability of the preferred candidate winning by the utility a voter gains in picking a candidate is greater than the costs of voting less his personal gains from voting, the agent votes. If this does not hold, our agent should not rationally vote. This is the Rational Voter Hypothesis from Downs and more fully shown by Mueller (Mueller, 1989, pp.348-369).
+
+When the simulation begins running the each candidate will take a poll of the voters.  Each of their polls is different and unique to the candidate. The candidates divide these polled voters into two groups: voters that support them and voters that do not support them.  The candidates can discount the opinions (political coordinates) of the voters that do not support them. After polling the voters and discounting the options of certain voters, the candidate arrives at the position is political spectrum space that they want to move toward. After the poll the candiates change their heading, pitch, and roll to be oriented to the mean positions on each of the three dimensions for the of the voters that they care about. They move forward toward this position.
+
+This change in positon is noticed by the voting agents and they recalculate their variables for B, F, and P. They are able to change the candidate they support as well as decide if they even want to vote or not (were the election to occur at that moment).  This movement of the candidates and the resulting change in the voters decisions account for one time step.  During a campain there can be many instances where candidates can make updated positions knows (i.e. debates or major policy speeches).  The length of election seasons varies across countries.  This model is run for 20 periods that represent 20 opportunities for candidates to update their positions and for voters to respond. At the end of the simulation the winning candidate is the one that has the larger number of votes.  If cost is turned on in the model then the voter turout will be 100% .  If the cost variable is on then voter turnout will vary depending on the amount of each voters cost their estimated benefit.
+
+
+##Bibliography
+
+Brunner, K. & Lys, T. (1996). Economic analysis and political ideology. Cheltenham, UK: E. Elgar.
+
+Caplan, B. (2001). Rational Ignorance versus Rational Irrationality. Kyklos, 54(1), 3-26. http://dx.doi.org/10.1111/1467-6435.00138
+
+CASTLES, F. & MAIR, P. (1984). Left-Right Political Scales: Some 'Expert' Judgments. European Journal Of Political Research, 12(1), 73-88. http://dx.doi.org/10.1111/j.1475-6765.1984.tb00080.x
+
+De Neve, J. (2014). Ideological change and the economics of voting behavior in the US, 1920-2008. Electoral Studies, 34, 27-38. http://dx.doi.org/10.1016/j.electstud.2013.10.003
+
+Dougan, W. & Munger, M. (1989). The Rationality of Ideology. The Journal Of Law & Economics, 32(1), 119-142.
+
+Downs, A. (1957). An Economic Theory of Political Action in a Democracy. Journal Of Political Economy, 65(2), 135-150. http://dx.doi.org/10.1086/257897
+
+Downs, A. (1957). An Economics Theory of Democracy.
+
+Edmonds, B., Lessard-Phillips, L., & Fieldhouse, E. (2015). A Complex Model of Voter Turnout. Comses Computational Model Library. Retrieved from https://www.openabm.org/model/4368/version/2
+
+Feldman, S. & Huddy, L. (2014). Not so simple: The multidimensional nature and diverse origins of political ideology. Behavioral And Brain Sciences, 37(03), 312-313. http://dx.doi.org/10.1017/s0140525x13002562
+
+Kornprobst, M. (2011). The agent's logics of action: defining and mapping political judgement. International Theory, 3(01), 70-104. http://dx.doi.org/10.1017/s1752971910000291
+
+Laver, M. & Sergenti, E. (2012). Party Competition: An Agent-Based Model. Princeton University Press.
+
+Martinelli, C. (2006). Rational ignorance and voting behavior. International Journal Of Game Theory, 35(3), 315-335. http://dx.doi.org/10.1007/s00182-006-0051-4
+
+Martinelli, C. (2006). Would rational voters acquire costly information?. Journal Of Economic Theory, 129(1), 225-251. http://dx.doi.org/10.1016/j.jet.2005.02.005
+
+Q8. What is the Nolan Chart?. (2016). Nolan Chart. Retrieved 9 November 2016, from https://www.nolanchart.com/faq/faq8-php
+
+Swank, D. (2013). Comparative Political Parties Dataset: Electoral, Legislative, and Government Strength of Political Parties by Ideological Group in 21 Capitalist Democracies, 1950-2011. Electronic Database, Department of Political Science, Marquette University, http://www.marquette.edu/polisci/faculty_swank.shtml
+
+Wallick, R. (2012). Agent-Based Models in Public Choice (PhD). George Mason University.
+
+
+
