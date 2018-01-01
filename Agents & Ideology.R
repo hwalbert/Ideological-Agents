@@ -4,12 +4,18 @@
 
 #Getting Started####
 #Load Libraries
-library(igraph);library(RNetLogo);library(skewt);library(dplyr);library(xlsx);library(ggplot2)
+library(igraph);library(RNetLogo)
+library(skewt);library(dplyr);library(xlsx);library(ggplot2)
 library(ggfortify);library(cluster);library(fpc);library(rgl);
 library(RColorBrewer);library(scales);library(psych);library(car)
 library(fitdistrplus);library(scatterplot3d)
+
+library(dplyr)
+library(cluster)
+library(car)
+library(rgl)
 #Make sure you set your working directory to where you ahve the data saved
-setwd("C:/Users/Harold/Documents/CSS/Computational Econ CSS695/")
+setwd("C:/Users/harol/Documents/GitHub/Ideological-Agents/Data")
 
 #Get the data...one is the full dataset and one is the ID to Name crosswalk
 CountryData <- read.csv("PARTY19502011.csv")
@@ -64,16 +70,16 @@ FinalData$DT <- scales::rescale(x=FinalData$PC3, c(-8, 8))
 
 #colnames(FinalData, c("V33", "V34"), c("clust2","clust3"))
 
-print(paste("The Standard deviation of scaled PC1 (EF) is", sd(FinalData$EF)))
-print(paste("The Standard deviation of scaled PC2 (PF) is", sd(FinalData$PF)))
-print(paste("The Standard deviation of scaled PC3 (DT) is", sd(FinalData$DT)))
+cat("The Standard deviation of scaled PC1 (EF) is", sd(FinalData$EF), "\n")
+cat("The Standard deviation of scaled PC2 (PF) is", sd(FinalData$PF), "\n")
+cat("The Standard deviation of scaled PC3 (DT) is", sd(FinalData$DT), "\n")
 
 #Analysis & Visualization####
 #View some plots
 #We see that the first three PCs account for ~80% of the variance
 Summary_PC_CCD <- summary(PC_CCD)
 Summary_PC_CCD$importance[1:3,1:6]
-plot(PC_CCD, main = "Variances of Princical Components")
+plot(PC_CCD, main = "Variances of Principal Components")
 
 #We are interested in the first three components since they explain most of what is going on in the data
 #Lets look at the first two
@@ -84,7 +90,7 @@ plot(PC_CCD$rotation[,1:2], pch = 20,
 
 
 #Kinda cool:
-# smoothScatter(PC_CCD$rotation[,1:2])
+smoothScatter(PC_CCD$rotation[,1:2], xlab = "PC1", ylab = "PC2")
 
 #Great article here:https://www.r-bloggers.com/scatterplot-matrices-in-r/
 #Used it and tweaked it to get the following:
@@ -228,11 +234,11 @@ write.graph(g, paste(graphType,"GraphForNetLogoModel.graphml", sep = "_"), forma
 # 
 # 
 # 
-# par(mfrow=c(2,2))
-# PlotCountryIdeology("Australia")
-# PlotCountryIdeology("Austria")
-# PlotCountryIdeology("Belgium")
-# PlotCountryIdeology("Canada")
+par(mfrow=c(2,2))
+PlotCountryIdeology("Australia")
+PlotCountryIdeology("Austria")
+PlotCountryIdeology("Belgium")
+PlotCountryIdeology("Canada")
 # PlotCountryIdeology("Denmark")
 # PlotCountryIdeology("Finland")
 # PlotCountryIdeology("France")
