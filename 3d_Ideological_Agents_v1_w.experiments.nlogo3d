@@ -160,13 +160,13 @@ to setupGraph
   ca
   reset-ticks
 ;the model starts with the import of a network generated according to a random, scale free or small world distribution
-  if NetworkType = "RandomNetwork" [nw:load-graphml "C:/Users/Harold/Documents/CSS/Computational Econ CSS695/Random_GraphForNetLogoModel.graphml" [
+  if NetworkType = "RandomNetwork" [nw:load-graphml "C:/Users/Owner/Documents/GitHub/Ideological-Agents/Data/Random_GraphForNetLogoModel.graphml" [
     ask links [hide-link]
     ]]
-  if NetworkType = "ScaleFreeNetwork" [nw:load-graphml "C:/Users/Harold/Documents/CSS/Computational Econ CSS695/ScaleFree_GraphForNetLogoModel.graphml" [
+  if NetworkType = "ScaleFreeNetwork" [nw:load-graphml "C:/Users/Owner/Documents/GitHub/Ideological-Agents/Data/ScaleFree_GraphForNetLogoModel.graphml" [
     ask links [hide-link]
     ]]
-  if NetworkType = "SmallWorldNetwork" [nw:load-graphml "C:/Users/Harold/Documents/CSS/Computational Econ CSS695/SmallWorld_GraphForNetLogoModel.graphml" [
+  if NetworkType = "SmallWorldNetwork" [nw:load-graphml "C:/Users/Owner/Documents/GitHub/Ideological-Agents/Data/SmallWorld_GraphForNetLogoModel.graphml" [
     ask links [hide-link]
     ]]
 end
@@ -285,16 +285,14 @@ to pollVoters
 end
 
 
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 0
 0
 245
 252
-8
-8
+-1
+-1
 13.0
 1
 10
@@ -326,7 +324,7 @@ EF_CandidateR
 EF_CandidateR
 -5
 5
-3
+3.0
 1
 1
 NIL
@@ -341,7 +339,7 @@ PF_CandidateR
 PF_CandidateR
 -5
 5
--3
+-3.0
 1
 1
 NIL
@@ -356,7 +354,7 @@ DT_CandidateR
 DT_CandidateR
 -5
 5
-0
+0.0
 1
 1
 NIL
@@ -371,7 +369,7 @@ EF_CandidateL
 EF_CandidateL
 -5
 5
--3
+-3.0
 1
 1
 NIL
@@ -386,7 +384,7 @@ PF_CandidateL
 PF_CandidateL
 -5
 5
-3
+3.0
 1
 1
 NIL
@@ -401,7 +399,7 @@ DT_CandidateL
 DT_CandidateL
 -5
 5
-0
+0.0
 1
 1
 NIL
@@ -619,7 +617,7 @@ discountR
 discountR
 0
 1
-0.5
+0.7
 .1
 1
 NIL
@@ -672,7 +670,7 @@ discountL
 discountL
 0
 1
-0.5
+0.4
 .1
 1
 NIL
@@ -1041,9 +1039,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 3D 5.3.1
+NetLogo 3D 6.0.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -1126,7 +1123,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@
